@@ -1,0 +1,81 @@
+<workflow-app name="DataExfilteration_user" xmlns="uri:oozie:workflow:0.1">
+
+<start to="Insert_into_user_out_bytes"/>
+
+<action name="Insert_into_user_out_bytes">
+
+        <hive xmlns="uri:oozie:hive-action:0.2">
+        <job-tracker>${jobTracker}</job-tracker>
+        <name-node>${nameNode}</name-node>
+        <job-xml>${appPath}/hive-site.xml</job-xml>
+
+        <configuration>
+        <property>
+        <name>oozie.hive.defaults</name>
+        <value>${appPath}/hive-site.xml</value>
+        </property>
+        </configuration>
+
+        <script>usecasetwo_useroutbytes.hql</script>
+        <param>LIMITDATE=${LIMITDATE}</param>
+	<param>ENDDATE=${ENDDATE}</param>
+        </hive>
+
+        <ok to="Insert_into_user_outbytes_above_threshold"/>
+        <error to="kill"/>
+
+</action>
+
+<action name="Insert_into_user_outbytes_above_threshold">
+
+        <hive xmlns="uri:oozie:hive-action:0.2">
+        <job-tracker>${jobTracker}</job-tracker>
+        <name-node>${nameNode}</name-node>
+        <job-xml>${appPath}/hive-site.xml</job-xml>
+
+        <configuration>
+        <property>
+        <name>oozie.hive.defaults</name>
+        <value>${appPath}/hive-site.xml</value>
+        </property>
+        </configuration>
+
+        <script>usecasetwo_useroutbytes_threshold.hql</script>
+        <param>CURRENTDATE=${CURRENTDATE}</param>
+        </hive>
+
+        <ok to="Insert_into_useroutbytes_above_threshold_url"/>
+        <error to="kill"/>
+
+</action>
+
+<action name="Insert_into_useroutbytes_above_threshold_url">
+
+        <hive xmlns="uri:oozie:hive-action:0.2">
+        <job-tracker>${jobTracker}</job-tracker>
+        <name-node>${nameNode}</name-node>
+        <job-xml>${appPath}/hive-site.xml</job-xml>
+
+        <configuration>
+        <property>
+        <name>oozie.hive.defaults</name>
+        <value>${appPath}/hive-site.xml</value>
+        </property>
+        </configuration>
+
+        <script>usecasetwo_useroutbytes_threshold_url.hql</script>
+        <param>PRESENTDATE=${PRESENTDATE}</param>
+        </hive>
+
+        <ok to="end"/>
+        <error to="kill"/>
+
+</action>
+
+<kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+</kill>
+
+<end name="end"/>
+
+</workflow-app>
